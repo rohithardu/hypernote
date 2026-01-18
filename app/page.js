@@ -2,7 +2,6 @@
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from 'uuid';
-import { useSearchParams } from "next/navigation";
 
 export default function Home() {
   const [form, setform] = useState({ title: "", content: "", tags: "", createdAt: "", updatedAt: "" })
@@ -17,8 +16,6 @@ export default function Home() {
   const [sidebarOpen, setsidebarOpen] = useState(false)
 
   useEffect(() => {
-
-
     let stored = localStorage.getItem("newNotes")
     if (!stored) return
     try {
@@ -32,6 +29,12 @@ export default function Home() {
       localStorage.removeItem("newNotes")
     }
   }, [])
+
+  const parseTags = (tags) =>
+  tags
+    .split(",")
+    .map(tag => tag.trim())
+    .filter(tag => tag.length > 0);
 
 
   const handleChange = (e) => {
@@ -56,38 +59,53 @@ export default function Home() {
   }
 
   const saveForm = () => {
-    if (!form.title || !form.content) {
-      alert("Please add title and content")
-      return
-    }
-
-    let updatedNotesArray
-    let updatedNote
-    let newNote
-    if (editingID) {
-      updatedNotesArray = newNotesArray.map(item =>
-        item.id === editingID ? { ...item, ...form, updatedAt: new Date().toLocaleString() } : item
-      )
-      updatedNote = updatedNotesArray.find((item) => item.id === editingID)
-      setselectedNote(updatedNote)
-    } else {
-      newNote = {
-        ...form,
-        id: uuidv4(),
-        pinned: false,
-        createdAt: new Date().toLocaleDateString(),
-        updatedAt: new Date().toLocaleDateString(),
-      }
-      updatedNotesArray = [newNote, ...newNotesArray]
-      setselectedNote(newNote)
-    }
-    localStorage.setItem("newNotes", JSON.stringify(updatedNotesArray))
-    setnewNotesArray(updatedNotesArray)
-    setallNotes(updatedNotesArray)
-    setform({ title: "", content: "", tags: "" })
-    seteditingID(null)
-    setnote(true)
+  if (!form.title || !form.content) {
+    alert("Please add title and content");
+    return;
   }
+
+  const tagsArray = Array.from(parseTags(form.tags));
+
+  let updatedNotesArray;
+  let updatedNote;
+  let newNote;
+
+  if (editingID) {
+    updatedNotesArray = newNotesArray.map(item =>
+      item.id === editingID
+        ? {
+            ...item,
+            ...form,
+            tags: tagsArray,
+            updatedAt: new Date().toLocaleString(),
+          }
+        : item
+    );
+
+    updatedNote = updatedNotesArray.find(item => item.id === editingID);
+    setselectedNote(updatedNote);
+  } else {
+    newNote = {
+      ...form,
+      tags: tagsArray,
+      id: uuidv4(),
+      pinned: false,
+      createdAt: new Date().toLocaleDateString(),
+      updatedAt: new Date().toLocaleDateString(),
+    };
+
+    updatedNotesArray = [newNote, ...newNotesArray];
+    setselectedNote(newNote);
+  }
+
+  localStorage.setItem("newNotes", JSON.stringify(updatedNotesArray));
+  setnewNotesArray(updatedNotesArray);
+  setallNotes(updatedNotesArray);
+  setform({ title: "", content: "", tags: "" });
+  seteditingID(null);
+  setnote(true);
+  setcount(0)
+};
 
 
   const findNote = (id) => {
@@ -132,7 +150,7 @@ export default function Home() {
       return
     } else {
       const filtered = newNotesArray.filter((item) => {
-        return item.title.toLowerCase().includes(value.toLowerCase()) || item.tags.toLowerCase().includes(value.toLowerCase())
+        return item.title.toLowerCase().includes(value.toLowerCase()) || item.tags.some(tag=>tag.toLowerCase().includes(value.toLowerCase())) || item.content.toLowerCase().includes(value.toLowerCase())
       })
       setallNotes(filtered)
       setmatches(filtered.length === 0)
@@ -154,22 +172,27 @@ export default function Home() {
     ...allNotes.filter(i => i.pinned),
     ...allNotes.filter(i => !i.pinned)
   ]
-// const searchParams = useSearchParams()
-// const tags = searchParams
-//   const arr = recorded.map((item,index)=>{
-//               item.tags.split(",")
-//                 .map(i => i.trim())
-//                 .filter(Boolean)
-//                 .map((item, index) => 
-//                  "#"+item
-//                 )})
-              
-              
-//     console.log(arr)
-    // console.log(tags)
-//   // const tagArray = Array.from()
-//   // console.log(tagArray)
 
+  const tg = newNotesArray.map((item,index)=>{
+    return item.tags
+  })
+  const tgarray = tg.reduce((prev,curr)=> prev.concat(curr),[]).sort()
+
+  const compressedTags = tgarray.reduce((arr, crr,i)=>{
+    if(i===0||crr!==tgarray[i-1]){
+      arr.push({crr,count:1})
+    }else{
+      arr[arr.length-1].count++
+    }
+    return arr
+  },[]).map(i=>`${i.crr} ${i.count}`)
+
+  const searchByTag = (tag)=>{
+    const filtered = newNotesArray.filter(item=>item.tags.includes(tag))
+    setallNotes(filtered)
+    setmatches(filtered.length === 0)
+    setsearch(`#${tag}`)
+  }
 
   return (<>
     <div className="flex">
@@ -190,24 +213,22 @@ export default function Home() {
             <button onClick={() => (setnote(false), setsidebarOpen(false))} className="text-sm py-1 px-3 cursor-pointer bg-green-400 font-semibold rounded-full">Add Note</button>
           </div>
           <div className="mt-6">
-            {/* <div className="flex flex-wrap gap-2">{recorded.map((item,index)=>{
-              return <span key={index}>{item.tags.split(",")
-                .map(i => "#"+ i.trim())
-                .filter(Boolean)
-                .map((item, index) => {
-                  return <span key={index} className="bg-slate-100 rounded-full px-2 py-1 w-fit text-sm">{item}</span>
-                })}</span>
-              })}</div> */}
-          {matches ? "No matches found" : recorded.map((item, index) => {
-            return <div key={index} onClick={() => { findNote(item.id) }} className="bg-slate-200 my-2 cursor-pointer py-1 px-2 flex justify-between items-center">
-              <div>{item.title}</div><div className="flex items-center gap-2"><div>{item.pinned ? (<img src="pin.svg" alt="pin" width={10} height={10} />) : ""}</div><div className="flex gap-1 break-all">{item.tags.split(",")
+            <div className="flex flex-wrap gap-1">
+            {compressedTags.map((item,index)=>{
+              const tag = item.split(" ")[0]
+              return <span key={index} onClick={()=>searchByTag(tag)} className="bg-slate-100 cursor-pointer rounded-full px-2 py-1 w-fit text-sm">#{item}</span>
+            })}
+            </div>
+            { matches ? "No matches found" : recorded.map((item, index) => {
+            return <div key={item.id} onClick={() => { findNote(item.id) }} className="bg-slate-200 my-2 cursor-pointer py-1 px-2 flex justify-between items-center">
+              <div>{item.title}</div><div className="flex items-center gap-2"><div>{item.pinned ? (<img src="pin.svg" alt="pin" width={10} height={10} />) : ""}</div><div className="flex gap-1 break-all">{item.tags
                 .map(i => "#"+ i.trim())
                 .filter(Boolean)
                 .slice(0, 1)
                 .map((item, index) => {
                   return <span key={index} className="bg-slate-100 rounded-full px-2 py-1 w-fit text-sm">{item}</span>
                 })}</div>
-                {item.tags.split(",").map(i => i.trim()).filter(Boolean).length > 1 ? <span>+{item.tags.split(",").map(i => i.trim()).filter(Boolean).length - 1}</span> : ""
+                {item.tags.map(i => i.trim()).filter(Boolean).length > 1 ? <span>+{item.tags.map(i => i.trim()).filter(Boolean).length - 1}</span> : ""
                 }
               </div>
             </div>
@@ -216,14 +237,14 @@ export default function Home() {
             </div>
         </div>
       </div>
-      <div className="right p-8 w-[80vw] mx-auto relative">
+      <div className="right p-8 w-[80vw] mx-auto relative" onClick={()=>{setsidebarOpen(false)}}>
         <img src="sidebar.svg" alt="sidebar" height={20} width={20} onClick={()=>setsidebarOpen(prev=> !prev)} className="absolute left-0 bg-white p-1 rounded-lg xl:hidden" />
          <h1 className="text-4xl xl:hidden block text-center my-10"><span className="text-green-400">&lt;</span>Hyper<span className="text-rose-500">Note</span><span className="text-green-400">&gt;</span></h1>
         <div className={`flex flex-col gap-4 items-center ${note ? "hidden" : ""} relative mt-10`}>
           <input value={form.title} type="text" name="title" id="title" className="title uppercase bg-white xl:w-1/4 sm:w-1/2 w-4/5 py-1 px-4 rounded-full outline outline-gray-500" placeholder="Add title" onChange={handleChange} />
           <div className="xl:w-1/2 sm:w-3/4 w-full flex flex-col items-center gap-3">
             <div className="w-full relative">
-              <div className="absolute right-1 top-0 opacity-50">{count}/300</div>
+              <div className="absolute right-1 top-0 opacity-50 text-sm lg:text-md">{count}/300</div>
               <textarea value={form.content} maxLength={300} name="content" id="content" className="rounded-lg bg-white md:min-h-[20vh] min-h-[12vh] leading-5 w-full px-4 py-2 outline outline-gray-500" placeholder="Enter content*" onChange={handleChange}></textarea>
             </div>
             <input value={form.tags} name="tags" id="tags" type="text" className="tags bg-white px-3 py-1 rounded-full outline outline-gray-500 w-2/5" placeholder="Add tags**" onChange={handleChange} />
@@ -237,7 +258,7 @@ export default function Home() {
         </div>
         {selectedNote && <div className={`${note ? "" : "hidden"}`}>
           <div className="flex justify-between">
-            <h2 className="font-bold text-3xl">{selectedNote.title}</h2>
+            <h2 className="font-bold text-xl lg:text-3xl">{selectedNote.title}</h2>
             <div className="flex gap-4 items-center">
               <img onClick={() => editNote(selectedNote.id)} src="edit.svg" alt="edit" width={20} height={20} className="cursor-pointer" />
               <img onClick={() => deleteNote(selectedNote.id)} src="delete.svg" alt="delete" width={20} height={20} className="cursor-pointer" />
@@ -245,14 +266,14 @@ export default function Home() {
             </div>
           </div>
           <hr />
-          <p className="whitespace-break-spaces wrap-break-word text-xl my-5">{selectedNote.content}</p>
-          <p className="flex gap-2">{selectedNote.tags.split(",")
+          <p className="whitespace-break-spaces wrap-break-word text-sm sm:text-md lg:text-xl my-5">{selectedNote.content}</p>
+          <p className="flex gap-2 text-sm md:text-md">{selectedNote.tags
             .map(i => "#"+ i.trim())
             .filter(Boolean)
             .map((item, index) => {
               return <span key={index} className="bg-slate-100 rounded-full px-2 py-1 w-fit text-sm">{item}</span>
             })}</p>
-          <div className="flex gap-5 my-3"><span>Created: {selectedNote.createdAt}</span><span>Last Updated: {selectedNote.updatedAt}</span>
+          <div className="flex gap-5 my-3 text-sm md:text-md"><span>Created: {selectedNote.createdAt}</span><span>Last Updated: {selectedNote.updatedAt}</span>
 
           </div>
         </div>
