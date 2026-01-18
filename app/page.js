@@ -193,14 +193,14 @@ export default function Home() {
     setmatches(filtered.length === 0)
     setsearch(`#${tag}`)
   }
-
+console.log(sidebarOpen)
   return (<>
     <div className="flex">
 
-      <div className={`left fixed xl:static top-0 left-0 z-40 ${sidebarOpen? "bg-white":""} transform transition-transform duration-300 ease-in-out ${sidebarOpen? "translate-x-0": "-translate-x-full"} xl:translate-x-0 w-[70vw] sm:w-[50vw] xl:w-[20vw] py-4 border-r min-h-screen `}>
+      <div onClick={(e)=>e.stopPropagation()} className={`left fixed xl:static top-0 left-0 z-40 ${sidebarOpen? "bg-white":""} transform transition-transform duration-300 ease-in-out ${sidebarOpen? "translate-x-0": "-translate-x-full"} xl:translate-x-0 w-[70vw] sm:w-[50vw] xl:w-[20vw] py-4 border-r min-h-screen `}>
         <div className=" flex flex-col items-center gap-4">
           <h1 className="text-3xl"><span className="text-green-400">&lt;</span>Hyper<span className="text-rose-500">Note</span><span className="text-green-400">&gt;</span></h1>
-          <img src="sidebar.svg" alt="sidebar" height={20} width={20} onClick={()=>setsidebarOpen(prev=> !prev)} className="absolute right-2 bg-gray-400 p-1 rounded-lg xl:hidden" />
+          <img src="sidebar.svg" alt="sidebar" height={20} width={20} onClick={()=>setsidebarOpen(prev=> !prev)} className="absolute right-2 top-6 bg-gray-400 p-1 rounded-lg xl:hidden" />
           <div className="relative pb-2">
             <img src="search.svg" alt="search" width={15} height={15} className="absolute left-2 top-2" />
             <input type="text" value={search} name="search" id="search" className={`search py-1 px-7 rounded-full outline outline-gray-500 ${sidebarOpen? "bg-gray-200":"bg-white"}`} placeholder="Search" onChange={searchNote} />
@@ -238,14 +238,15 @@ export default function Home() {
         </div>
       </div>
       <div className="right p-8 w-[80vw] mx-auto relative" onClick={()=>{setsidebarOpen(false)}}>
-        <img src="sidebar.svg" alt="sidebar" height={20} width={20} onClick={()=>setsidebarOpen(prev=> !prev)} className="absolute left-0 bg-white p-1 rounded-lg xl:hidden" />
+        <img src="sidebar.svg" alt="sidebar" height={20} width={20} onClick={(e)=>{
+          e.stopPropagation(); setsidebarOpen(prev=> !prev)}} className="absolute left-0 top-21 bg-white p-1 rounded-lg xl:hidden" />
          <h1 className="text-4xl xl:hidden block text-center my-10"><span className="text-green-400">&lt;</span>Hyper<span className="text-rose-500">Note</span><span className="text-green-400">&gt;</span></h1>
         <div className={`flex flex-col gap-4 items-center ${note ? "hidden" : ""} relative mt-10`}>
           <input value={form.title} type="text" name="title" id="title" className="title uppercase bg-white xl:w-1/4 sm:w-1/2 w-4/5 py-1 px-4 rounded-full outline outline-gray-500" placeholder="Add title" onChange={handleChange} />
           <div className="xl:w-1/2 sm:w-3/4 w-full flex flex-col items-center gap-3">
             <div className="w-full relative">
-              <div className="absolute right-1 top-0 opacity-50 text-sm lg:text-md">{count}/300</div>
-              <textarea value={form.content} maxLength={300} name="content" id="content" className="rounded-lg bg-white md:min-h-[20vh] min-h-[12vh] leading-5 w-full px-4 py-2 outline outline-gray-500" placeholder="Enter content*" onChange={handleChange}></textarea>
+              <div className="absolute right-1 top-0 opacity-50 text-sm lg:text-md">{count}/500</div>
+              <textarea value={form.content} maxLength={500} name="content" id="content" className="rounded-lg bg-white md:min-h-[20vh] min-h-[12vh] leading-5 w-full px-4 py-2 outline outline-gray-500" placeholder="Enter content*" onChange={handleChange}></textarea>
             </div>
             <input value={form.tags} name="tags" id="tags" type="text" className="tags bg-white px-3 py-1 rounded-full outline outline-gray-500 w-2/5" placeholder="Add tags**" onChange={handleChange} />
           </div>
