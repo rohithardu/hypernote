@@ -22,7 +22,8 @@ HyperNote is a fast, lightweight, offline-first note-taking web app that lets yo
 
 ## 🖼 Preview
 
-> *(Add screenshots here if you want later)*
+<img width="1920" height="877" alt="Screenshot hypernote" src="https://github.com/user-attachments/assets/327a75d0-f053-4545-a282-125577590573" />
+
 
 ---
 
@@ -53,3 +54,5 @@ cd hypernote
    ```
    ## Run the app
    ```bash
+npm run dev
+```
