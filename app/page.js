@@ -2,6 +2,8 @@
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { v4 as uuidv4 } from 'uuid';
+import { ToastContainer, toast } from 'react-toastify';
+import { Bounce } from "react-toastify";
 
 export default function Home() {
   const [form, setform] = useState({ title: "", content: "", tags: "", createdAt: "", updatedAt: "" })
@@ -61,7 +63,16 @@ export default function Home() {
 
   const saveForm = () => {
     if (!form.title || !form.content) {
-      alert("Please add title and content");
+      toast.warn(`Please add title and content`, {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+      });
       return;
     }
 
@@ -106,6 +117,16 @@ export default function Home() {
     seteditingID(null);
     setnote(true);
     setcount(0)
+    toast('Added', {
+      position: "top-right",
+      autoClose: 5000,
+      hideProgressBar: false,
+      closeOnClick: false,
+      pauseOnHover: true,
+      draggable: true,
+      progress: undefined,
+      theme: "light"
+    });
   };
 
 
@@ -127,6 +148,16 @@ export default function Home() {
         setselectedNote(null)
         setnote(false)
       }
+      toast('Note Deleted.', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: false,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light"
+      });
     }
   }
 
@@ -243,6 +274,19 @@ export default function Home() {
 
 
   return (<>
+  <ToastContainer
+      position="top-right"
+      autoClose={5000}
+      hideProgressBar={false}
+      newestOnTop={false}
+      closeOnClick={false}
+      rtl={false}
+      pauseOnFocusLoss
+      draggable
+      pauseOnHover
+      theme="light"
+      transition={Bounce}
+    />
     <div className="flex">
 
       <div onClick={(e) => e.stopPropagation()} className={`left fixed xl:static top-0 left-0 z-40 bg-white md:bg-[#d3d3d3] transform transition-transform duration-300 ease-in-out ${sidebarOpen ? "translate-x-0" : "-translate-x-full"} xl:translate-x-0 w-[70vw] sm:w-[50vw] xl:w-[20vw] py-4 border-r min-h-screen `}>
@@ -302,7 +346,7 @@ export default function Home() {
 
           <button onClick={() => saveForm()} className="py-2 px-3 cursor-pointer bg-green-400 font-bold rounded-full text-lg">+Add</button>
           <div className="mt-5 text-gray-700">
-            <p>* &nbsp;&nbsp;- &nbsp;Type "-" in content to make bullet points and write title in double square brackets to link notes [[title]].</p>
+            <p>* &nbsp;&nbsp;- &nbsp;Type "-" in content to make bullet points and write title of the note you want to link in double square brackets and link notes [[title]].</p>
             <p>** &nbsp;&nbsp;- &nbsp;Separate tags by "," to make independent tags.</p>
           </div>
         </div>
